@@ -1,0 +1,99 @@
+<html>
+<head>
+<title>A5 PCA,FA, CLUSTER - ROSHAN RAJKUMAR.ipynb</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #bcbec4;}
+.s1 { color: #cf8e6d;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #2aacb8;}
+.s5 { color: #7a7e85;}
+.ls0 { height: 1px; border-width: 0; color: #43454a; background-color:#43454a}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+A5 PCA,FA, CLUSTER - ROSHAN RAJKUMAR.ipynb</font>
+</center></td></tr></table>
+<pre><span class="s0">#%% 
+</span><span class="s1">import </span><span class="s0">pandas </span><span class="s1">as </span><span class="s0">pd</span>
+<span class="s1">import </span><span class="s0">numpy </span><span class="s1">as </span><span class="s0">np</span>
+<span class="s1">from </span><span class="s0">sklearn</span><span class="s2">.</span><span class="s0">decomposition </span><span class="s1">import </span><span class="s0">PCA</span><span class="s2">, </span><span class="s0">FactorAnalysis</span>
+<span class="s1">from </span><span class="s0">sklearn</span><span class="s2">.</span><span class="s0">preprocessing </span><span class="s1">import </span><span class="s0">StandardScaler</span>
+<span class="s1">from </span><span class="s0">sklearn</span><span class="s2">.</span><span class="s0">cluster </span><span class="s1">import </span><span class="s0">KMeans</span>
+<span class="s1">from </span><span class="s0">scipy</span><span class="s2">.</span><span class="s0">cluster</span><span class="s2">.</span><span class="s0">hierarchy </span><span class="s1">import </span><span class="s0">dendrogram</span><span class="s2">, </span><span class="s0">linkage</span>
+<span class="s1">import </span><span class="s0">matplotlib</span><span class="s2">.</span><span class="s0">pyplot </span><span class="s1">as </span><span class="s0">plt</span>
+<span class="s1">from </span><span class="s0">factor_analyzer </span><span class="s1">import </span><span class="s0">FactorAnalyzer</span>
+<span class="s1">from </span><span class="s0">factor_analyzer</span><span class="s2">.</span><span class="s0">factor_analyzer </span><span class="s1">import </span><span class="s0">calculate_kmo</span><hr class="ls0"><span class="s0">#%% 
+survey_df </span><span class="s2">= </span><span class="s0">pd</span><span class="s2">.</span><span class="s0">read_csv</span><span class="s2">(</span><span class="s3">'Survey.csv'</span><span class="s2">)</span>
+<span class="s0">sur_int </span><span class="s2">= </span><span class="s0">survey_df</span><span class="s2">.</span><span class="s0">iloc</span><span class="s2">[:, </span><span class="s4">19</span><span class="s2">:</span><span class="s4">46</span><span class="s2">]</span><hr class="ls0"><span class="s0">#%% 
+scaler </span><span class="s2">= </span><span class="s0">StandardScaler</span><span class="s2">()</span>
+<span class="s0">sur_int_std </span><span class="s2">= </span><span class="s0">scaler</span><span class="s2">.</span><span class="s0">fit_transform</span><span class="s2">(</span><span class="s0">sur_int</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% 
+numeric_cols </span><span class="s2">= </span><span class="s0">survey_df</span><span class="s2">.</span><span class="s0">select_dtypes</span><span class="s2">(</span><span class="s0">include</span><span class="s2">=[</span><span class="s0">np</span><span class="s2">.</span><span class="s0">number</span><span class="s2">]).</span><span class="s0">columns</span>
+<span class="s0">sur_int </span><span class="s2">= </span><span class="s0">survey_df</span><span class="s2">[</span><span class="s0">numeric_cols</span><span class="s2">]</span><hr class="ls0"><span class="s0">#%% 
+scaler </span><span class="s2">= </span><span class="s0">StandardScaler</span><span class="s2">()</span>
+<span class="s0">sur_int_std </span><span class="s2">= </span><span class="s0">scaler</span><span class="s2">.</span><span class="s0">fit_transform</span><span class="s2">(</span><span class="s0">sur_int</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% md 
+PRINCIPAL COMPONENT ANALYSIS <hr class="ls0">#%% 
+pca </span><span class="s2">= </span><span class="s0">PCA</span><span class="s2">()</span>
+<span class="s0">pca_result </span><span class="s2">= </span><span class="s0">pca</span><span class="s2">.</span><span class="s0">fit_transform</span><span class="s2">(</span><span class="s0">sur_int_std</span><span class="s2">)</span>
+
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">figure</span><span class="s2">(</span><span class="s0">figsize</span><span class="s2">=(</span><span class="s4">10</span><span class="s2">, </span><span class="s4">6</span><span class="s2">))</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">plot</span><span class="s2">(</span><span class="s0">range</span><span class="s2">(</span><span class="s4">1</span><span class="s2">, </span><span class="s0">len</span><span class="s2">(</span><span class="s0">pca</span><span class="s2">.</span><span class="s0">explained_variance_ratio_</span><span class="s2">) + </span><span class="s4">1</span><span class="s2">), </span><span class="s0">pca</span><span class="s2">.</span><span class="s0">explained_variance_ratio_</span><span class="s2">, </span><span class="s0">marker</span><span class="s2">=</span><span class="s3">'o'</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">xlabel</span><span class="s2">(</span><span class="s3">'Principal Component'</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">ylabel</span><span class="s2">(</span><span class="s3">'Variance Explained'</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">title</span><span class="s2">(</span><span class="s3">'Scree Plot'</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">show</span><span class="s2">()</span><hr class="ls0"><span class="s0">#%% 
+kmo_all</span><span class="s2">, </span><span class="s0">kmo_model </span><span class="s2">= </span><span class="s0">calculate_kmo</span><span class="s2">(</span><span class="s0">sur_int</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">f&quot;KMO Measure: </span><span class="s1">{</span><span class="s0">kmo_model</span><span class="s1">:</span><span class="s3">.3f</span><span class="s1">}</span><span class="s3">&quot;</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% 
+fa </span><span class="s2">= </span><span class="s0">FactorAnalyzer</span><span class="s2">(</span><span class="s0">n_factors</span><span class="s2">=</span><span class="s4">4</span><span class="s2">, </span><span class="s0">rotation</span><span class="s2">=</span><span class="s3">'varimax'</span><span class="s2">)</span>
+<span class="s0">fa</span><span class="s2">.</span><span class="s0">fit</span><span class="s2">(</span><span class="s0">sur_int_std</span><span class="s2">)</span>
+
+<span class="s0">loadings </span><span class="s2">= </span><span class="s0">pd</span><span class="s2">.</span><span class="s0">DataFrame</span><span class="s2">(</span><span class="s0">fa</span><span class="s2">.</span><span class="s0">loadings_</span><span class="s2">, </span><span class="s0">index</span><span class="s2">=</span><span class="s0">sur_int</span><span class="s2">.</span><span class="s0">columns</span><span class="s2">,</span>
+                       <span class="s0">columns</span><span class="s2">=[</span><span class="s3">'Factor1'</span><span class="s2">, </span><span class="s3">'Factor2'</span><span class="s2">, </span><span class="s3">'Factor3'</span><span class="s2">, </span><span class="s3">'Factor4'</span><span class="s2">])</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">Factor Loadings:&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">loadings</span><span class="s2">)</span>
+
+<span class="s0">communalities </span><span class="s2">= </span><span class="s0">pd</span><span class="s2">.</span><span class="s0">DataFrame</span><span class="s2">(</span><span class="s0">fa</span><span class="s2">.</span><span class="s0">get_communalities</span><span class="s2">(), </span><span class="s0">index</span><span class="s2">=</span><span class="s0">sur_int</span><span class="s2">.</span><span class="s0">columns</span><span class="s2">,</span>
+                           <span class="s0">columns</span><span class="s2">=[</span><span class="s3">'Communalities'</span><span class="s2">])</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">Communalities:&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">communalities</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% md 
+CLUSTER ANALYSIS <hr class="ls0">#%% 
+wcss </span><span class="s2">= []</span>
+<span class="s1">for </span><span class="s0">i </span><span class="s1">in </span><span class="s0">range</span><span class="s2">(</span><span class="s4">1</span><span class="s2">, </span><span class="s4">11</span><span class="s2">):</span>
+    <span class="s0">kmeans </span><span class="s2">= </span><span class="s0">KMeans</span><span class="s2">(</span><span class="s0">n_clusters</span><span class="s2">=</span><span class="s0">i</span><span class="s2">, </span><span class="s0">init</span><span class="s2">=</span><span class="s3">'k-means++'</span><span class="s2">, </span><span class="s0">random_state</span><span class="s2">=</span><span class="s4">123</span><span class="s2">)</span>
+    <span class="s0">kmeans</span><span class="s2">.</span><span class="s0">fit</span><span class="s2">(</span><span class="s0">sur_int_std</span><span class="s2">)</span>
+    <span class="s0">wcss</span><span class="s2">.</span><span class="s0">append</span><span class="s2">(</span><span class="s0">kmeans</span><span class="s2">.</span><span class="s0">inertia_</span><span class="s2">)</span>
+
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">figure</span><span class="s2">(</span><span class="s0">figsize</span><span class="s2">=(</span><span class="s4">10</span><span class="s2">, </span><span class="s4">6</span><span class="s2">))</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">plot</span><span class="s2">(</span><span class="s0">range</span><span class="s2">(</span><span class="s4">1</span><span class="s2">, </span><span class="s4">11</span><span class="s2">), </span><span class="s0">wcss</span><span class="s2">, </span><span class="s0">marker</span><span class="s2">=</span><span class="s3">'o'</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">xlabel</span><span class="s2">(</span><span class="s3">'Number of clusters'</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">ylabel</span><span class="s2">(</span><span class="s3">'WCSS'</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">title</span><span class="s2">(</span><span class="s3">'Elbow Method'</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">show</span><span class="s2">()</span>
+
+<span class="s5"># K-means clustering with 4 clusters</span>
+<span class="s0">kmeans </span><span class="s2">= </span><span class="s0">KMeans</span><span class="s2">(</span><span class="s0">n_clusters</span><span class="s2">=</span><span class="s4">4</span><span class="s2">, </span><span class="s0">init</span><span class="s2">=</span><span class="s3">'k-means++'</span><span class="s2">, </span><span class="s0">random_state</span><span class="s2">=</span><span class="s4">123</span><span class="s2">)</span>
+<span class="s0">survey_df</span><span class="s2">[</span><span class="s3">'cluster'</span><span class="s2">] = </span><span class="s0">kmeans</span><span class="s2">.</span><span class="s0">fit_predict</span><span class="s2">(</span><span class="s0">sur_int_std</span><span class="s2">)</span>
+
+<span class="s5"># Hierarchical clustering</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">figure</span><span class="s2">(</span><span class="s0">figsize</span><span class="s2">=(</span><span class="s4">12</span><span class="s2">, </span><span class="s4">7</span><span class="s2">))</span>
+<span class="s0">dendrogram</span><span class="s2">(</span><span class="s0">linkage</span><span class="s2">(</span><span class="s0">sur_int_std</span><span class="s2">, </span><span class="s0">method</span><span class="s2">=</span><span class="s3">'ward'</span><span class="s2">),</span>
+           <span class="s0">truncate_mode</span><span class="s2">=</span><span class="s3">'lastp'</span><span class="s2">, </span><span class="s0">p</span><span class="s2">=</span><span class="s4">12</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">title</span><span class="s2">(</span><span class="s3">'Hierarchical Clustering Dendrogram'</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">xlabel</span><span class="s2">(</span><span class="s3">'Sample index'</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">ylabel</span><span class="s2">(</span><span class="s3">'Distance'</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">show</span><span class="s2">()</span>
+
+<span class="s5"># Cluster interpretation - mean values for each cluster</span>
+<span class="s0">cluster_means </span><span class="s2">= </span><span class="s0">survey_df</span><span class="s2">.</span><span class="s0">groupby</span><span class="s2">(</span><span class="s3">'cluster'</span><span class="s2">)[</span><span class="s0">numeric_cols</span><span class="s2">].</span><span class="s0">mean</span><span class="s2">()</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">Cluster Profiles (Mean Values):&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">cluster_means</span><span class="s2">)</span>
+
+<span class="s5"># Count of respondents in each cluster</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">Number of respondents per cluster:&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">survey_df</span><span class="s2">[</span><span class="s3">'cluster'</span><span class="s2">].</span><span class="s0">value_counts</span><span class="s2">().</span><span class="s0">sort_index</span><span class="s2">())</span></pre>
+</body>
+</html>

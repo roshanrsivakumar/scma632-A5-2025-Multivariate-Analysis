@@ -1,0 +1,59 @@
+<html>
+<head>
+<title>A5 MDS ROSHAN RAJKUMAR.ipynb</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #bcbec4;}
+.s1 { color: #cf8e6d;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #2aacb8;}
+.s5 { color: #7a7e85;}
+.ls0 { height: 1px; border-width: 0; color: #43454a; background-color:#43454a}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+A5 MDS ROSHAN RAJKUMAR.ipynb</font>
+</center></td></tr></table>
+<pre><span class="s0">#%% 
+</span><span class="s1">import </span><span class="s0">pandas </span><span class="s1">as </span><span class="s0">pd</span>
+<span class="s1">import </span><span class="s0">numpy </span><span class="s1">as </span><span class="s0">np</span>
+<span class="s1">from </span><span class="s0">sklearn</span><span class="s2">.</span><span class="s0">manifold </span><span class="s1">import </span><span class="s0">MDS</span>
+<span class="s1">from </span><span class="s0">sklearn</span><span class="s2">.</span><span class="s0">preprocessing </span><span class="s1">import </span><span class="s0">StandardScaler</span>
+<span class="s1">import </span><span class="s0">matplotlib</span><span class="s2">.</span><span class="s0">pyplot </span><span class="s1">as </span><span class="s0">plt</span><hr class="ls0"><span class="s0">#%% 
+data </span><span class="s2">= </span><span class="s0">pd</span><span class="s2">.</span><span class="s0">read_csv</span><span class="s2">(</span><span class="s3">'icecream.csv'</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% 
+brands </span><span class="s2">= </span><span class="s0">data</span><span class="s2">[</span><span class="s3">'Brand'</span><span class="s2">]</span>
+<span class="s0">features </span><span class="s2">= </span><span class="s0">data</span><span class="s2">.</span><span class="s0">drop</span><span class="s2">(</span><span class="s3">'Brand'</span><span class="s2">, </span><span class="s0">axis</span><span class="s2">=</span><span class="s4">1</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% 
+scaler </span><span class="s2">= </span><span class="s0">StandardScaler</span><span class="s2">()</span>
+<span class="s0">features_scaled </span><span class="s2">= </span><span class="s0">scaler</span><span class="s2">.</span><span class="s0">fit_transform</span><span class="s2">(</span><span class="s0">features</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% 
+mds </span><span class="s2">= </span><span class="s0">MDS</span><span class="s2">(</span><span class="s0">n_components</span><span class="s2">=</span><span class="s4">2</span><span class="s2">, </span><span class="s0">random_state</span><span class="s2">=</span><span class="s4">42</span><span class="s2">, </span><span class="s0">dissimilarity</span><span class="s2">=</span><span class="s3">'euclidean'</span><span class="s2">)</span>
+<span class="s0">mds_result </span><span class="s2">= </span><span class="s0">mds</span><span class="s2">.</span><span class="s0">fit_transform</span><span class="s2">(</span><span class="s0">features_scaled</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% 
+plt</span><span class="s2">.</span><span class="s0">figure</span><span class="s2">(</span><span class="s0">figsize</span><span class="s2">=(</span><span class="s4">12</span><span class="s2">, </span><span class="s4">8</span><span class="s2">))</span>
+<span class="s0">scatter </span><span class="s2">= </span><span class="s0">plt</span><span class="s2">.</span><span class="s0">scatter</span><span class="s2">(</span><span class="s0">mds_result</span><span class="s2">[:, </span><span class="s4">0</span><span class="s2">], </span><span class="s0">mds_result</span><span class="s2">[:, </span><span class="s4">1</span><span class="s2">], </span><span class="s0">c</span><span class="s2">=</span><span class="s3">'blue'</span><span class="s2">, </span><span class="s0">s</span><span class="s2">=</span><span class="s4">100</span><span class="s2">, </span><span class="s0">alpha</span><span class="s2">=</span><span class="s4">0.6</span><span class="s2">)</span>
+
+<span class="s5"># Add labels with adjusted positions to prevent overlap</span>
+<span class="s1">for </span><span class="s0">i</span><span class="s2">, </span><span class="s0">brand </span><span class="s1">in </span><span class="s0">enumerate</span><span class="s2">(</span><span class="s0">brands</span><span class="s2">):</span>
+    <span class="s5"># Calculate offset direction based on point position</span>
+    <span class="s0">x_offset </span><span class="s2">= </span><span class="s4">0.05 </span><span class="s1">if </span><span class="s0">mds_result</span><span class="s2">[</span><span class="s0">i</span><span class="s2">, </span><span class="s4">0</span><span class="s2">] &gt;= </span><span class="s0">np</span><span class="s2">.</span><span class="s0">median</span><span class="s2">(</span><span class="s0">mds_result</span><span class="s2">[:, </span><span class="s4">0</span><span class="s2">]) </span><span class="s1">else </span><span class="s2">-</span><span class="s4">0.05</span>
+    <span class="s0">y_offset </span><span class="s2">= </span><span class="s4">0.05 </span><span class="s1">if </span><span class="s0">mds_result</span><span class="s2">[</span><span class="s0">i</span><span class="s2">, </span><span class="s4">1</span><span class="s2">] &gt;= </span><span class="s0">np</span><span class="s2">.</span><span class="s0">median</span><span class="s2">(</span><span class="s0">mds_result</span><span class="s2">[:, </span><span class="s4">1</span><span class="s2">]) </span><span class="s1">else </span><span class="s2">-</span><span class="s4">0.05</span>
+
+    <span class="s0">plt</span><span class="s2">.</span><span class="s0">text</span><span class="s2">(</span><span class="s0">mds_result</span><span class="s2">[</span><span class="s0">i</span><span class="s2">, </span><span class="s4">0</span><span class="s2">] + </span><span class="s0">x_offset</span><span class="s2">,</span>
+             <span class="s0">mds_result</span><span class="s2">[</span><span class="s0">i</span><span class="s2">, </span><span class="s4">1</span><span class="s2">] + </span><span class="s0">y_offset</span><span class="s2">,</span>
+             <span class="s0">brand</span><span class="s2">,</span>
+             <span class="s0">fontsize</span><span class="s2">=</span><span class="s4">10</span><span class="s2">,</span>
+             <span class="s0">ha</span><span class="s2">=</span><span class="s3">'center'</span><span class="s2">,</span>
+             <span class="s0">va</span><span class="s2">=</span><span class="s3">'center'</span><span class="s2">,</span>
+             <span class="s0">bbox</span><span class="s2">=</span><span class="s0">dict</span><span class="s2">(</span><span class="s0">facecolor</span><span class="s2">=</span><span class="s3">'white'</span><span class="s2">, </span><span class="s0">alpha</span><span class="s2">=</span><span class="s4">0.8</span><span class="s2">, </span><span class="s0">edgecolor</span><span class="s2">=</span><span class="s3">'gray'</span><span class="s2">, </span><span class="s0">boxstyle</span><span class="s2">=</span><span class="s3">'round,pad=0.3'</span><span class="s2">))</span>
+
+<span class="s5"># Add grid and labels</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">grid</span><span class="s2">(</span><span class="s1">True</span><span class="s2">, </span><span class="s0">linestyle</span><span class="s2">=</span><span class="s3">'--'</span><span class="s2">, </span><span class="s0">alpha</span><span class="s2">=</span><span class="s4">0.6</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">xlabel</span><span class="s2">(</span><span class="s3">'Dimension 1'</span><span class="s2">, </span><span class="s0">fontsize</span><span class="s2">=</span><span class="s4">12</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">ylabel</span><span class="s2">(</span><span class="s3">'Dimension 2'</span><span class="s2">, </span><span class="s0">fontsize</span><span class="s2">=</span><span class="s4">12</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">title</span><span class="s2">(</span><span class="s3">'MDS Plot of Ice Cream Brands'</span><span class="s2">, </span><span class="s0">fontsize</span><span class="s2">=</span><span class="s4">14</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% 
+plt</span><span class="s2">.</span><span class="s0">tight_layout</span><span class="s2">()</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">show</span><span class="s2">()</span></pre>
+</body>
+</html>

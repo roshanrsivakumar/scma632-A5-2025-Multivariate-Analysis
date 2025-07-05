@@ -1,0 +1,134 @@
+<html>
+<head>
+<title>Conjoint_pizza.ipynb</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #bcbec4;}
+.s1 { color: #cf8e6d;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #2aacb8;}
+.s5 { color: #7a7e85;}
+.ls0 { height: 1px; border-width: 0; color: #43454a; background-color:#43454a}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+Conjoint_pizza.ipynb</font>
+</center></td></tr></table>
+<pre><span class="s0">#%% md 
+***Conjoint Analysis*** <hr class="ls0">#%% md 
+We want to understand which combination of attributes &amp; levels of pizza is most and least preferred by customers while choosing or ordering pizza so that the marketing team can enter the market with the best combinations. 
+ 
+The first step is to define the attributes and levels of the product. 
+ 
+We will take eight different attributes, namely ‘brand,’ ‘price,’ ‘weight,’ ‘crust,’ ‘cheese,’ ‘size,’ ‘toppings,’ and ‘spicy,’ where brand, price, and weight have four levels each and rest of the attributes have two levels. <hr class="ls0">#%% md 
+![attribute info](https://av-eks-blogoptimized.s3.amazonaws.com/Capture0001-thumbnail_webp-600x300.png) <hr class="ls0">#%% md 
+The next step is to select the number of combinations or profiles. Here, we have a total 4*4*4*2*2*2*2*2 number of combinations. But we will not use all combinations since the company may not be able to produce some combinations, and the customers may not prefer some combinations. So, we will go with the selected 16 combinations and their rankings from a survey. We will load the dataset in the proper format. <hr class="ls0">#%% 
+</span><span class="s1">import </span><span class="s0">pandas </span><span class="s1">as </span><span class="s0">pd</span><span class="s2">, </span><span class="s0">numpy </span><span class="s1">as </span><span class="s0">np</span>
+<span class="s0">df</span><span class="s2">=</span><span class="s0">pd</span><span class="s2">.</span><span class="s0">read_csv</span><span class="s2">(</span><span class="s3">'/Users/roshan/Documents/VCU/SCMA/A5/pizza_data.csv'</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% md 
+We will now estimate each attribute level’s effects using Linear Regression Model. <hr class="ls0">#%% 
+</span><span class="s1">import </span><span class="s0">statsmodels</span><span class="s2">.</span><span class="s0">api </span><span class="s1">as </span><span class="s0">sm</span>
+<span class="s1">import </span><span class="s0">statsmodels</span><span class="s2">.</span><span class="s0">formula</span><span class="s2">.</span><span class="s0">api </span><span class="s1">as </span><span class="s0">smf</span>
+
+<span class="s0">model</span><span class="s2">=</span><span class="s3">'ranking ~ C(brand,Sum)+C(price,Sum)+C(weight,Sum)+C(crust,Sum)+C(cheese,Sum)+C(size,Sum)+C(toppings,Sum)+C(spicy,Sum)'</span>
+<span class="s0">model_fit</span><span class="s2">=</span><span class="s0">smf</span><span class="s2">.</span><span class="s0">ols</span><span class="s2">(</span><span class="s0">model</span><span class="s2">,</span><span class="s0">data</span><span class="s2">=</span><span class="s0">df</span><span class="s2">).</span><span class="s0">fit</span><span class="s2">()</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">model_fit</span><span class="s2">.</span><span class="s0">summary</span><span class="s2">())</span><hr class="ls0"><span class="s0">#%% md 
+We can analyze the model’s fitness using parameters like R-squared, p-values, etc. The coefficients of each attribute level define its effect on the overall choice model. 
+ 
+Now, we will create the list of conjoint attributes. <hr class="ls0">#%% 
+conjoint_attributes </span><span class="s2">= [</span><span class="s3">'brand'</span><span class="s2">,</span><span class="s3">'price'</span><span class="s2">,</span><span class="s3">'weight'</span><span class="s2">,</span><span class="s3">'crust'</span><span class="s2">,</span><span class="s3">'cheese'</span><span class="s2">,</span><span class="s3">'size'</span><span class="s2">,</span><span class="s3">'toppings'</span><span class="s2">,</span><span class="s3">'spicy'</span><span class="s2">]</span><hr class="ls0"><span class="s0">#%% md 
+Before going ahead, we need to understand these conjoint analysis terminologies: 
+ 
+Relative importance: It depicts which attributes are more or less important when purchasing. E.g., a Mobile Phone’s Relative importance could be Brand 30%, Price 30%, Size 20%, Battery Life 10%, and Color 10%. 
+ 
+Part-Worths/Utility values: The amount of weight an attribute level carries with a respondent. These factors lead to a product’s overall value to consumers. 
+ 
+Next, we will build part-worths information and calculate attribute-wise importance level. <hr class="ls0">#%% 
+level_name </span><span class="s2">= []</span>
+<span class="s0">part_worth </span><span class="s2">= []</span>
+<span class="s0">part_worth_range </span><span class="s2">= []</span>
+<span class="s0">important_levels </span><span class="s2">= {}</span>
+<span class="s0">end </span><span class="s2">= </span><span class="s4">1  </span><span class="s5"># Initialize index for coefficient in params</span>
+
+<span class="s1">for </span><span class="s0">item </span><span class="s1">in </span><span class="s0">conjoint_attributes</span><span class="s2">:</span>
+    <span class="s0">nlevels </span><span class="s2">= </span><span class="s0">len</span><span class="s2">(</span><span class="s0">list</span><span class="s2">(</span><span class="s0">np</span><span class="s2">.</span><span class="s0">unique</span><span class="s2">(</span><span class="s0">df</span><span class="s2">[</span><span class="s0">item</span><span class="s2">])))</span>
+    <span class="s0">level_name</span><span class="s2">.</span><span class="s0">append</span><span class="s2">(</span><span class="s0">list</span><span class="s2">(</span><span class="s0">np</span><span class="s2">.</span><span class="s0">unique</span><span class="s2">(</span><span class="s0">df</span><span class="s2">[</span><span class="s0">item</span><span class="s2">])))</span>
+    
+    <span class="s0">begin </span><span class="s2">= </span><span class="s0">end</span>
+    <span class="s0">end </span><span class="s2">= </span><span class="s0">begin </span><span class="s2">+ </span><span class="s0">nlevels </span><span class="s2">-</span><span class="s4">1</span>
+    
+    <span class="s0">new_part_worth </span><span class="s2">= </span><span class="s0">list</span><span class="s2">(</span><span class="s0">model_fit</span><span class="s2">.</span><span class="s0">params</span><span class="s2">[</span><span class="s0">begin</span><span class="s2">:</span><span class="s0">end</span><span class="s2">])</span>
+    <span class="s0">new_part_worth</span><span class="s2">.</span><span class="s0">append</span><span class="s2">((-</span><span class="s4">1</span><span class="s2">)*</span><span class="s0">sum</span><span class="s2">(</span><span class="s0">new_part_worth</span><span class="s2">))</span>
+    <span class="s0">important_levels</span><span class="s2">[</span><span class="s0">item</span><span class="s2">] = </span><span class="s0">np</span><span class="s2">.</span><span class="s0">argmax</span><span class="s2">(</span><span class="s0">new_part_worth</span><span class="s2">)</span>
+    <span class="s0">part_worth</span><span class="s2">.</span><span class="s0">append</span><span class="s2">(</span><span class="s0">new_part_worth</span><span class="s2">)</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s0">item</span><span class="s2">)</span>
+    <span class="s5">#print(part_worth)</span>
+    <span class="s0">part_worth_range</span><span class="s2">.</span><span class="s0">append</span><span class="s2">(</span><span class="s0">max</span><span class="s2">(</span><span class="s0">new_part_worth</span><span class="s2">) - </span><span class="s0">min</span><span class="s2">(</span><span class="s0">new_part_worth</span><span class="s2">))</span>
+    <span class="s5"># next iteration</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;-------------------------------------------------------------&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;level name:&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">level_name</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;npw with sum element:&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">new_part_worth</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;imp level:&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">important_levels</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;part worth:&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">part_worth</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;part_worth_range:&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">part_worth_range</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">len</span><span class="s2">(</span><span class="s0">part_worth</span><span class="s2">))</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;important levels:&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">important_levels</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% md 
+Now, we will calculate the importance of each attribute. <hr class="ls0">#%% 
+attribute_importance </span><span class="s2">= []</span>
+<span class="s1">for </span><span class="s0">i </span><span class="s1">in </span><span class="s0">part_worth_range</span><span class="s2">:</span>
+    <span class="s5">#print(i)</span>
+    <span class="s0">attribute_importance</span><span class="s2">.</span><span class="s0">append</span><span class="s2">(</span><span class="s0">round</span><span class="s2">(</span><span class="s4">100</span><span class="s2">*(</span><span class="s0">i</span><span class="s2">/</span><span class="s0">sum</span><span class="s2">(</span><span class="s0">part_worth_range</span><span class="s2">)),</span><span class="s4">2</span><span class="s2">))</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s0">attribute_importance</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% md 
+Now, we will calculate the part-worths of each attribute level. <hr class="ls0">#%% 
+part_worth_dict</span><span class="s2">={}</span>
+<span class="s0">attrib_level</span><span class="s2">={}</span>
+<span class="s1">for </span><span class="s0">item</span><span class="s2">,</span><span class="s0">i </span><span class="s1">in </span><span class="s0">zip</span><span class="s2">(</span><span class="s0">conjoint_attributes</span><span class="s2">,</span><span class="s0">range</span><span class="s2">(</span><span class="s4">0</span><span class="s2">,</span><span class="s0">len</span><span class="s2">(</span><span class="s0">conjoint_attributes</span><span class="s2">))):</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Attribute :&quot;</span><span class="s2">,</span><span class="s0">item</span><span class="s2">)</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;    Relative importance of attribute &quot;</span><span class="s2">,</span><span class="s0">attribute_importance</span><span class="s2">[</span><span class="s0">i</span><span class="s2">])</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;    Level wise part worths: &quot;</span><span class="s2">)</span>
+    <span class="s1">for </span><span class="s0">j </span><span class="s1">in </span><span class="s0">range</span><span class="s2">(</span><span class="s4">0</span><span class="s2">,</span><span class="s0">len</span><span class="s2">(</span><span class="s0">level_name</span><span class="s2">[</span><span class="s0">i</span><span class="s2">])):</span>
+        <span class="s0">print</span><span class="s2">(</span><span class="s0">i</span><span class="s2">)</span>
+        <span class="s0">print</span><span class="s2">(</span><span class="s0">j</span><span class="s2">)</span>
+        <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;          {}:{}&quot;</span><span class="s2">.</span><span class="s0">format</span><span class="s2">(</span><span class="s0">level_name</span><span class="s2">[</span><span class="s0">i</span><span class="s2">][</span><span class="s0">j</span><span class="s2">],</span><span class="s0">part_worth</span><span class="s2">[</span><span class="s0">i</span><span class="s2">][</span><span class="s0">j</span><span class="s2">]))</span>
+        <span class="s0">part_worth_dict</span><span class="s2">[</span><span class="s0">level_name</span><span class="s2">[</span><span class="s0">i</span><span class="s2">][</span><span class="s0">j</span><span class="s2">]]=</span><span class="s0">part_worth</span><span class="s2">[</span><span class="s0">i</span><span class="s2">][</span><span class="s0">j</span><span class="s2">]</span>
+        <span class="s0">attrib_level</span><span class="s2">[</span><span class="s0">item</span><span class="s2">]=(</span><span class="s0">level_name</span><span class="s2">[</span><span class="s0">i</span><span class="s2">])</span>
+        <span class="s5">#print(j)</span>
+<span class="s0">part_worth_dict</span><hr class="ls0"><span class="s0">#%% md 
+In the next step, we will plot the relative importance of attributes. <hr class="ls0">#%% 
+</span><span class="s1">import </span><span class="s0">matplotlib</span><span class="s2">.</span><span class="s0">pyplot </span><span class="s1">as </span><span class="s0">plt</span>
+<span class="s1">import </span><span class="s0">seaborn </span><span class="s1">as </span><span class="s0">sns</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">figure</span><span class="s2">(</span><span class="s0">figsize</span><span class="s2">=(</span><span class="s4">10</span><span class="s2">,</span><span class="s4">5</span><span class="s2">))</span>
+<span class="s0">sns</span><span class="s2">.</span><span class="s0">barplot</span><span class="s2">(</span><span class="s0">x</span><span class="s2">=</span><span class="s0">conjoint_attributes</span><span class="s2">,</span><span class="s0">y</span><span class="s2">=</span><span class="s0">attribute_importance</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">title</span><span class="s2">(</span><span class="s3">'Relative importance of attributes'</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">xlabel</span><span class="s2">(</span><span class="s3">'Attributes'</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">ylabel</span><span class="s2">(</span><span class="s3">'Importance'</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% md 
+We can see that weight is the attribute with the highest relative importance at 51%, followed by crust at 16% and toppings at 10%. Brand, cheese, and size are the least important attributes, each at 2.38%. 
+ 
+Now, we will calculate the utility score for each profile. <hr class="ls0">#%% 
+utility </span><span class="s2">= []</span>
+<span class="s1">for </span><span class="s0">i </span><span class="s1">in </span><span class="s0">range</span><span class="s2">(</span><span class="s0">df</span><span class="s2">.</span><span class="s0">shape</span><span class="s2">[</span><span class="s4">0</span><span class="s2">]):</span>
+    <span class="s0">score </span><span class="s2">= </span><span class="s0">part_worth_dict</span><span class="s2">[</span><span class="s0">df</span><span class="s2">[</span><span class="s3">'brand'</span><span class="s2">][</span><span class="s0">i</span><span class="s2">]]+</span><span class="s0">part_worth_dict</span><span class="s2">[</span><span class="s0">df</span><span class="s2">[</span><span class="s3">'price'</span><span class="s2">][</span><span class="s0">i</span><span class="s2">]]+</span><span class="s0">part_worth_dict</span><span class="s2">[</span><span class="s0">df</span><span class="s2">[</span><span class="s3">'weight'</span><span class="s2">][</span><span class="s0">i</span><span class="s2">]]+</span><span class="s0">part_worth_dict</span><span class="s2">[</span><span class="s0">df</span><span class="s2">[</span><span class="s3">'crust'</span><span class="s2">][</span><span class="s0">i</span><span class="s2">]]+</span><span class="s0">part_worth_dict</span><span class="s2">[</span><span class="s0">df</span><span class="s2">[</span><span class="s3">'cheese'</span><span class="s2">][</span><span class="s0">i</span><span class="s2">]]+</span><span class="s0">part_worth_dict</span><span class="s2">[</span><span class="s0">df</span><span class="s2">[</span><span class="s3">'size'</span><span class="s2">][</span><span class="s0">i</span><span class="s2">]]+</span><span class="s0">part_worth_dict</span><span class="s2">[</span><span class="s0">df</span><span class="s2">[</span><span class="s3">'toppings'</span><span class="s2">][</span><span class="s0">i</span><span class="s2">]]+</span><span class="s0">part_worth_dict</span><span class="s2">[</span><span class="s0">df</span><span class="s2">[</span><span class="s3">'spicy'</span><span class="s2">][</span><span class="s0">i</span><span class="s2">]]</span>
+    <span class="s0">utility</span><span class="s2">.</span><span class="s0">append</span><span class="s2">(</span><span class="s0">score</span><span class="s2">)</span>
+    
+<span class="s0">df</span><span class="s2">[</span><span class="s3">'utility'</span><span class="s2">] = </span><span class="s0">utility</span>
+<span class="s0">utility</span><hr class="ls0"><span class="s0">#%% md 
+We can see that combination number 9 has the maximum utility, followed by combination numbers 13 and 5. Combination number 14 is the least desirable because of the most negative utility score. 
+ 
+Now, we will find the combination with maximum utility. <hr class="ls0">#%% 
+print</span><span class="s2">(</span><span class="s3">&quot;The profile that has the highest utility score :&quot;</span><span class="s2">,</span><span class="s3">'</span><span class="s1">\n</span><span class="s3">'</span><span class="s2">, </span><span class="s0">df</span><span class="s2">.</span><span class="s0">iloc</span><span class="s2">[</span><span class="s0">np</span><span class="s2">.</span><span class="s0">argmax</span><span class="s2">(</span><span class="s0">utility</span><span class="s2">)])</span><hr class="ls0"><span class="s0">#%% md 
+Now, we will determine the levels being preferred in each attribute. <hr class="ls0">#%% 
+</span><span class="s1">for </span><span class="s0">i</span><span class="s2">,</span><span class="s0">j </span><span class="s1">in </span><span class="s0">zip</span><span class="s2">(</span><span class="s0">attrib_level</span><span class="s2">.</span><span class="s0">keys</span><span class="s2">(),</span><span class="s0">range</span><span class="s2">(</span><span class="s4">0</span><span class="s2">,</span><span class="s0">len</span><span class="s2">(</span><span class="s0">conjoint_attributes</span><span class="s2">))):</span>
+    <span class="s5">#print(i)</span>
+    <span class="s5">#level_name[j]</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Preferred level in {} is :: {}&quot;</span><span class="s2">.</span><span class="s0">format</span><span class="s2">(</span><span class="s0">i</span><span class="s2">,</span><span class="s0">level_name</span><span class="s2">[</span><span class="s0">j</span><span class="s2">][</span><span class="s0">important_levels</span><span class="s2">[</span><span class="s0">i</span><span class="s2">]]))</span></pre>
+</body>
+</html>
